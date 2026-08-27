@@ -1,0 +1,15 @@
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.csproj.AssemblyReference.cache
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.AssemblyInfoInputs.cache
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.AssemblyInfo.cs
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.csproj.CoreCompileInputs.cache
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.deps.json
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.pdb
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.pdb
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\Anotacio.8495217B.Up2Date
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\refint\AnotacionElectronica_Leon_VB.Application.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Application.pdb
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Application\obj\Debug\net9.0\ref\AnotacionElectronica_Leon_VB.Application.dll

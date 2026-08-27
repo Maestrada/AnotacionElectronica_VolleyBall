@@ -1,0 +1,11 @@
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.deps.json
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\bin\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.pdb
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.AssemblyInfoInputs.cache
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.AssemblyInfo.cs
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\refint\AnotacionElectronica_Leon_VB.Domain.dll
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\AnotacionElectronica_Leon_VB.Domain.pdb
+C:\Users\Mario Estrada\source\repos\AnotacionElectronica_Leon_VB\src\AnotacionElectronica_Leon_VB.Domain\obj\Debug\net9.0\ref\AnotacionElectronica_Leon_VB.Domain.dll
