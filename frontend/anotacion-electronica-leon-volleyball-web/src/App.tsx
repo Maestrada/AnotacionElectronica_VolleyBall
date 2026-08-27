@@ -135,7 +135,7 @@ export default function App() {
   // Estado del Partido y Marcador
   const [partidoActual, setPartidoActual] = useState<Partido | null>(null)
   const [setActual, setSetActual] = useState<SetActual | null>(null)
-  const [accionPunto, setAccionPunto] = useState<'Ataque' | 'Bloqueo' | 'Saque' | 'Error'>('Ataque')
+  const [accionPunto, setAccionPunto] = useState<'Ataque' | 'Bloqueo' | 'SaqueAce' | 'ErrorRival'>('Ataque')
   const [jugadorAnotadorId, setJugadorAnotadorId] = useState<string>('')
 
   // Formularios de Creación
@@ -229,7 +229,13 @@ export default function App() {
   }
 
   useEffect(() => {
-    void cargarTodosLosDatos()
+    // El retraso separa la sincronización inicial de la fase de renderizado.
+    const timer = window.setTimeout(() => {
+      void cargarTodosLosDatos()
+    }, 0)
+    return () => window.clearTimeout(timer)
+    // cargarTodosLosDatos se recrea con el estado de formularios; solo reconectamos al cambiar la URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
 
   const guardarApiUrl = (e: FormEvent) => {
@@ -823,12 +829,12 @@ export default function App() {
                         <span>Tipo de Acción:</span>
                         <select
                           value={accionPunto}
-                          onChange={e => setAccionPunto(e.target.value as 'Ataque' | 'Bloqueo' | 'Saque' | 'Error')}
+                          onChange={e => setAccionPunto(e.target.value as 'Ataque' | 'Bloqueo' | 'SaqueAce' | 'ErrorRival')}
                         >
                           <option value="Ataque">Ataque</option>
                           <option value="Bloqueo">Bloqueo</option>
-                          <option value="Saque">Saque As</option>
-                          <option value="Error">Error del Adversario</option>
+                          <option value="SaqueAce">Saque As</option>
+                          <option value="ErrorRival">Error del Adversario</option>
                         </select>
                       </label>
 

@@ -1,10 +1,14 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using AnotacionElectronica_Leon_VB.Infraestructure.Context;
 
 #nullable disable
 
 namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations;
 
+[DbContext(typeof(ApplicationDbContext))]
+[Migration("20260826140000_AgregarCalendarioJuegos")]
 public partial class AgregarCalendarioJuegos : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)

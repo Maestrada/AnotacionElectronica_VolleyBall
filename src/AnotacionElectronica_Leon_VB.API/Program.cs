@@ -2,6 +2,7 @@ using AnotacionElectronica_Leon_VB.Infraestructure;
 using AnotacionElectronica_Leon_VB.Infraestructure.Context;
 using AnotacionElectronica_Leon_VB.Application.Services;
 using AnotacionElectronica_Leon_VB.API.Hubs;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,8 @@ builder.Services.AddCors(options =>
 });
 
 // Registrar Controladores y Swagger
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
