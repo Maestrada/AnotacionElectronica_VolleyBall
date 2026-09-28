@@ -10,6 +10,10 @@ public class Jugador
     public int NumeroCamiseta { get; private set; }
     public PosicionJugador Posicion { get; private set; }
     public bool EsCapitan { get; private set; }
+    public string? ImagenUrl { get; private set; }
+    public string? DocumentoIdentidadUrl { get; private set; }
+    public string? DocumentoAvalForaneoUrl { get; private set; }
+    public bool EsJugadorForaneo { get; private set; }
     
     // Foreign Key
     public Guid EquipoId { get; private set; }
@@ -27,4 +31,22 @@ public class Jugador
         EquipoId = equipoId;
         EsCapitan = esCapitan;
     }
+
+    public void Actualizar(string nombre, string apellidos, int numeroCamiseta, PosicionJugador posicion, bool esCapitan)
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellidos) || numeroCamiseta <= 0)
+            throw new ArgumentException("Nombre, apellidos y número de camiseta válido son obligatorios.");
+        Nombre = nombre.Trim();
+        Apellidos = apellidos.Trim();
+        NumeroCamiseta = numeroCamiseta;
+        Posicion = posicion;
+        EsCapitan = esCapitan;
+    }
+
+    public void ActualizarDocumentos(bool esForaneo, string? identidadUrl, string? avalForaneoUrl)
+    {
+        if (esForaneo && string.IsNullOrWhiteSpace(avalForaneoUrl)) throw new ArgumentException("El aval es obligatorio para un jugador foráneo.");
+        EsJugadorForaneo = esForaneo; DocumentoIdentidadUrl = identidadUrl?.Trim(); DocumentoAvalForaneoUrl = avalForaneoUrl?.Trim();
+    }
+    public void EstablecerImagen(string? imagenUrl) => ImagenUrl = string.IsNullOrWhiteSpace(imagenUrl) ? null : imagenUrl.Trim();
 }

@@ -91,6 +91,22 @@ public class EquipoService : IEquipoService
             Array.Empty<JugadorDto>());
     }
 
+    public async Task<EquipoDto> ActualizarEquipoAsync(Guid id, ActualizarEquipoDto dto)
+    {
+        var equipo = await _equipos.GetByIdAsync(id) ?? throw new KeyNotFoundException("Equipo no encontrado.");
+        equipo.Actualizar(dto.Nombre, dto.NombreEntrenador, dto.Categoria, dto.NombreAsistente);
+        await _unitOfWork.SaveChangesAsync();
+        return (await ObtenerEquipoPorIdAsync(id))!;
+    }
+
+    public async Task EliminarEquipoAsync(Guid id)
+    {
+        var equipo = await _equipos.GetByIdAsync(id) ?? throw new KeyNotFoundException("Equipo no encontrado.");
+        if ((await _jugadores.GetAllAsync()).Any(j => j.EquipoId == id))
+            throw new InvalidOperationException("No puede eliminarse un equipo con jugadores registrados.");
+        _equipos.Delete(equipo); await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task<JugadorDto> AgregarJugadorAsync(CrearJugadorDto dto)
     {
         var equipo = await _equipos.GetByIdAsync(dto.EquipoId)
@@ -137,6 +153,51 @@ public class EquipoService : IEquipoService
             .Select(j => MapToJugadorDto(j, todosEquipos.TryGetValue(j.EquipoId, out var nom) ? nom : null));
     }
 
+    public async Task<JugadorDto?> ObtenerJugadorPorIdAsync(Guid id)
+    {
+        var jugador = await _jugadores.GetByIdAsync(id);
+        if (jugador is null) return null;
+        var equipo = await _equipos.GetByIdAsync(jugador.EquipoId);
+        return MapToJugadorDto(jugador, equipo?.Nombre);
+    }
+
+    public async Task<JugadorDto> ActualizarJugadorAsync(Guid id, ActualizarJugadorDto dto)
+    {
+        var jugador = await _jugadores.GetByIdAsync(id) ?? throw new KeyNotFoundException("Jugador no encontrado.");
+        var todosJugadores = await _jugadores.GetAllAsync();
+        if (todosJugadores.Any(j => j.Id != id && j.EquipoId == jugador.EquipoId && j.NumeroCamiseta == dto.NumeroCamiseta))
+            throw new InvalidOperationException($"Ya existe un jugador con la camiseta #{dto.NumeroCamiseta} en este equipo.");
+        jugador.Actualizar(dto.Nombre, dto.Apellidos, dto.NumeroCamiseta, dto.Posicion, dto.EsCapitan);
+        await _unitOfWork.SaveChangesAsync();
+        var equipo = await _equipos.GetByIdAsync(jugador.EquipoId);
+        return MapToJugadorDto(jugador, equipo?.Nombre);
+    }
+
+    public async Task EliminarJugadorAsync(Guid id)
+    {
+        var jugador = await _jugadores.GetByIdAsync(id) ?? throw new KeyNotFoundException("Jugador no encontrado.");
+        _jugadores.Delete(jugador);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<JugadorDto> ActualizarDocumentacionJugadorAsync(Guid id, ActualizarDocumentacionJugadorDto dto)
+    {
+        var jugador = await _jugadores.GetByIdAsync(id) ?? throw new KeyNotFoundException("Jugador no encontrado.");
+        jugador.ActualizarDocumentos(dto.EsJugadorForaneo, dto.DocumentoIdentidadUrl, dto.DocumentoAvalForaneoUrl);
+        await _unitOfWork.SaveChangesAsync();
+        var equipo = await _equipos.GetByIdAsync(jugador.EquipoId);
+        return MapToJugadorDto(jugador, equipo?.Nombre);
+    }
+
+    public async Task<JugadorDto> ActualizarImagenJugadorAsync(Guid id, string? imagenUrl)
+    {
+        var jugador = await _jugadores.GetByIdAsync(id) ?? throw new KeyNotFoundException("Jugador no encontrado.");
+        jugador.EstablecerImagen(imagenUrl);
+        await _unitOfWork.SaveChangesAsync();
+        var equipo = await _equipos.GetByIdAsync(jugador.EquipoId);
+        return MapToJugadorDto(jugador, equipo?.Nombre);
+    }
+
     private static JugadorDto MapToJugadorDto(Jugador j, string? nombreEquipo)
     {
         return new JugadorDto(
@@ -148,7 +209,11 @@ public class EquipoService : IEquipoService
             ObtenerTextoPosicion(j.Posicion),
             j.EsCapitan,
             j.EquipoId,
-            nombreEquipo);
+            nombreEquipo,
+            j.ImagenUrl,
+            j.EsJugadorForaneo,
+            j.DocumentoIdentidadUrl,
+            j.DocumentoAvalForaneoUrl);
     }
 
     private static string ObtenerTextoPosicion(PosicionJugador pos) => pos switch

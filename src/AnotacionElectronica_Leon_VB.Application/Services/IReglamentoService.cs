@@ -7,5 +7,7 @@ public interface IReglamentoService
     Task<IEnumerable<PerfilReglamentoDto>> ObtenerReglamentosAsync();
     Task<PerfilReglamentoDto?> ObtenerPorCodigoAsync(string codigo);
     Task<PerfilReglamentoDto> CrearReglamentoAsync(CrearPerfilReglamentoDto dto);
+    Task<PerfilReglamentoDto> ActualizarReglamentoAsync(string codigo, ActualizarPerfilReglamentoDto dto);
+    Task EliminarReglamentoAsync(string codigo);
     Task AsegurarReglamentosPorDefectoAsync();
 }

@@ -45,8 +45,9 @@ public sealed class PartidoService : IPartidoService
     {
         var partido = await ObtenerPartido(partidoId);
         partido.IniciarPartido();
-        await RegistrarEvento(partido.Id, null, TipoEventoPartido.PartidoIniciado, new { });
         var primerSet = partido.Sets.Single();
+        await _partidos.AgregarSetAsync(primerSet);
+        await RegistrarEvento(partido.Id, null, TipoEventoPartido.PartidoIniciado, new { });
         await RegistrarEvento(partido.Id, primerSet.Id, TipoEventoPartido.SetIniciado, new { primerSet.NumeroSet });
         await _unitOfWork.SaveChangesAsync();
     }
@@ -68,6 +69,7 @@ public sealed class PartidoService : IPartidoService
             throw new InvalidOperationException($"El siguiente set debe ser el número {esperado}.");
 
         var set = partido.IniciarSiguienteSet();
+        await _partidos.AgregarSetAsync(set);
         await RegistrarEvento(partido.Id, set.Id, TipoEventoPartido.SetIniciado, new { set.NumeroSet });
         await _unitOfWork.SaveChangesAsync();
         return Map(set);
@@ -89,6 +91,8 @@ public sealed class PartidoService : IPartidoService
 
         set.AnotarPunto(dto.EquipoAnotadorId, partido.EquipoLocalId, partido.EquipoVisitanteId,
             dto.TipoAccion, dto.JugadorAnotadorId);
+        var punto = set.Puntos.Last();
+        await _partidos.AgregarPuntoAsync(punto);
         await RegistrarEvento(partido.Id, set.Id, TipoEventoPartido.PuntoRegistrado, new
         {
             dto.EquipoAnotadorId,
@@ -124,6 +128,7 @@ public sealed class PartidoService : IPartidoService
         var partido = await ObtenerPartido(partidoId);
         var set = ObtenerSetActual(partido);
         var punto = set.DeshacerUltimoPunto();
+        _partidos.EliminarPunto(punto);
         await RegistrarEvento(partido.Id, set.Id, TipoEventoPartido.PuntoDeshecho, new
         {
             punto.Id,

@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Registros físicos de la API (se conserva la carpeta con .gitkeep)
+src/AnotacionElectronica_Leon_VB.API/logs/*.log
+
 # User-specific files
 *.rsuser
 *.suo

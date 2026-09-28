@@ -22,3 +22,7 @@ public record PerfilReglamentoDto(
     int PuntosSetDecisivo,
     int DiferenciaMinima,
     int PuntoCambioCanchaSetDecisivo);
+
+public record ActualizarPerfilReglamentoDto(string Nombre, string? Descripcion, int MaximoSets,
+    int SetsParaGanar, int PuntosSetRegular, int PuntosSetDecisivo, int DiferenciaMinima,
+    int PuntoCambioCanchaSetDecisivo);

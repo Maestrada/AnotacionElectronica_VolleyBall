@@ -11,6 +11,9 @@ public interface IPartidoRepository : IRepository<Partido>
     //Task<AlineacionSet?> GetAlineacionPorSetYEquipoAsync(Guid setId, Guid equipoId);
 
     Task<int> ObtenerSiguienteSecuenciaEventoAsync(Guid partidoId);
+    Task AgregarSetAsync(Set set);
+    Task AgregarPuntoAsync(Punto punto);
+    void EliminarPunto(Punto punto);
     Task AgregarEventoAsync(EventoPartido evento);
     Task<IReadOnlyList<EventoPartido>> ObtenerEventosAsync(Guid partidoId);
 }

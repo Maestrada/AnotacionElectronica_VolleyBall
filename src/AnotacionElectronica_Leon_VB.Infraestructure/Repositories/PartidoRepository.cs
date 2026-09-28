@@ -48,6 +48,10 @@ public class PartidoRepository : Repository<Partido>, IPartidoRepository
         return Math.Max(ultimaSecuenciaPersistida, ultimaSecuenciaPendiente) + 1;
     }
 
+    public Task AgregarSetAsync(Set set) => _context.Sets.AddAsync(set).AsTask();
+    public Task AgregarPuntoAsync(Punto punto) => _context.Puntos.AddAsync(punto).AsTask();
+    public void EliminarPunto(Punto punto) => _context.Puntos.Remove(punto);
+
     public Task AgregarEventoAsync(EventoPartido evento) => _context.EventosPartido.AddAsync(evento).AsTask();
 
     public async Task<IReadOnlyList<EventoPartido>> ObtenerEventosAsync(Guid partidoId) =>

@@ -42,4 +42,12 @@ public class CompeticionesController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Actualizar(Guid id, ActualizarCompeticionDto dto)
+    { try { return Ok(await _competicionService.ActualizarCompeticionAsync(id, dto)); } catch (KeyNotFoundException e) { return NotFound(new { mensaje = e.Message }); } catch (ArgumentException e) { return BadRequest(new { mensaje = e.Message }); } }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Eliminar(Guid id)
+    { try { await _competicionService.EliminarCompeticionAsync(id); return NoContent(); } catch (KeyNotFoundException e) { return NotFound(new { mensaje = e.Message }); } }
 }

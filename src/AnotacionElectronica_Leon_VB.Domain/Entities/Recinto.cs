@@ -1,0 +1,3 @@
+namespace AnotacionElectronica_Leon_VB.Domain.Entities;
+public class Recinto
+{ public Guid Id { get; private set; } = Guid.NewGuid(); public string Nombre { get; private set; } = string.Empty; public string Ciudad { get; private set; } = string.Empty; public string? Direccion { get; private set; } private Recinto() { } public Recinto(string nombre, string ciudad, string? direccion) { if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(ciudad)) throw new ArgumentException("Nombre y ciudad son obligatorios."); Nombre = nombre.Trim(); Ciudad = ciudad.Trim(); Direccion = direccion?.Trim(); } }

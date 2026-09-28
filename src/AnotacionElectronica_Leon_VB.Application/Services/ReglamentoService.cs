@@ -64,6 +64,24 @@ public class ReglamentoService : IReglamentoService
         return MapToDto(reg);
     }
 
+    public async Task<PerfilReglamentoDto> ActualizarReglamentoAsync(string codigo, ActualizarPerfilReglamentoDto dto)
+    {
+        var reg = (await _reglamentos.GetAllAsync()).FirstOrDefault(r => r.CodigoReglamento.Equals(codigo, StringComparison.OrdinalIgnoreCase))
+            ?? throw new KeyNotFoundException("Reglamento no encontrado.");
+        reg.Actualizar(dto.Nombre, dto.Descripcion, dto.MaximoSets, dto.SetsParaGanar, dto.PuntosSetRegular,
+            dto.PuntosSetDecisivo, dto.DiferenciaMinima, dto.PuntoCambioCanchaSetDecisivo);
+        await _unitOfWork.SaveChangesAsync();
+        return MapToDto(reg);
+    }
+
+    public async Task EliminarReglamentoAsync(string codigo)
+    {
+        var reg = (await _reglamentos.GetAllAsync()).FirstOrDefault(r => r.CodigoReglamento.Equals(codigo, StringComparison.OrdinalIgnoreCase))
+            ?? throw new KeyNotFoundException("Reglamento no encontrado.");
+        _reglamentos.Delete(reg);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task AsegurarReglamentosPorDefectoAsync()
     {
         var lista = await _reglamentos.GetAllAsync();

@@ -43,6 +43,14 @@ public class EquiposController : ControllerBase
         }
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Actualizar(Guid id, ActualizarEquipoDto dto)
+    { try { return Ok(await _equipoService.ActualizarEquipoAsync(id, dto)); } catch (KeyNotFoundException e) { return NotFound(new { mensaje = e.Message }); } catch (ArgumentException e) { return BadRequest(new { mensaje = e.Message }); } }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Eliminar(Guid id)
+    { try { await _equipoService.EliminarEquipoAsync(id); return NoContent(); } catch (KeyNotFoundException e) { return NotFound(new { mensaje = e.Message }); } catch (InvalidOperationException e) { return BadRequest(new { mensaje = e.Message }); } }
+
     [HttpGet("{id:guid}/jugadores")]
     public async Task<IActionResult> ObtenerJugadores(Guid id) =>
         Ok(await _equipoService.ObtenerJugadoresAsync(id));

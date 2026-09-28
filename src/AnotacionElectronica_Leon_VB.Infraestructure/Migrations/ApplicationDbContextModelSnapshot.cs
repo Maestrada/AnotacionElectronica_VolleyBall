@@ -102,6 +102,84 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                     b.ToTable("Arbitros", (string)null);
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.BitacoraAccion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<int>("CodigoRespuesta")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DetalleJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("DireccionIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MetodoHttp")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Ruta")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FechaUtc");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("BitacoraAcciones", (string)null);
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Categoria", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Categorias", (string)null);
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Competicion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -117,6 +195,9 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -141,6 +222,30 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                     b.ToTable("Competiciones", (string)null);
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.DesignacionArbitral", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ArbitroId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("NombreArbitro")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("PartidoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rol")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DesignacionesArbitrales");
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Equipo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -151,6 +256,9 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -204,6 +312,49 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .IsUnique();
 
                     b.ToTable("EventosPartido", (string)null);
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.FaseCompeticion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CodigoReglamento")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CompeticionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FasesCompeticion");
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Federacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Federaciones");
                 });
 
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.JuegoCalendario", b =>
@@ -293,11 +444,23 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("DocumentoAvalForaneoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DocumentoIdentidadUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("EquipoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("EsCapitan")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("EsJugadorForaneo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -427,6 +590,30 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                     b.ToTable("PerfilesReglamento", (string)null);
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.PermisoSistema", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("PermisosSistema", (string)null);
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Punto", b =>
                 {
                     b.Property<Guid>("Id")
@@ -458,7 +645,70 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
 
                     b.HasIndex("SetId");
 
-                    b.ToTable("Puntos");
+                    b.ToTable("Puntos", (string)null);
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Recinto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Ciudad")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Direccion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Recintos");
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.RolPermiso", b =>
+                {
+                    b.Property<Guid>("RolId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PermisoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RolId", "PermisoId");
+
+                    b.HasIndex("PermisoId");
+
+                    b.ToTable("RolesPermisos", (string)null);
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.RolSistema", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("RolesSistema", (string)null);
                 });
 
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Rotacion", b =>
@@ -587,6 +837,71 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                     b.ToTable("SustitucionesReglamentarias", (string)null);
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioRol", b =>
+                {
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RolId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UsuarioId", "RolId");
+
+                    b.HasIndex("RolId");
+
+                    b.ToTable("UsuariosRoles", (string)null);
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioSistema", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ArbitroId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorreoElectronico")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<DateTime>("FechaCreacionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HashContrasena")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("NombreCompleto")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("NombreUsuario")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArbitroId")
+                        .IsUnique()
+                        .HasFilter("[ArbitroId] IS NOT NULL");
+
+                    b.HasIndex("CorreoElectronico")
+                        .IsUnique();
+
+                    b.HasIndex("NombreUsuario")
+                        .IsUnique();
+
+                    b.ToTable("UsuariosSistema", (string)null);
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Jugador", b =>
                 {
                     b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.Equipo", "Equipo")
@@ -626,6 +941,25 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.RolPermiso", b =>
+                {
+                    b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.PermisoSistema", "Permiso")
+                        .WithMany()
+                        .HasForeignKey("PermisoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.RolSistema", "Rol")
+                        .WithMany("Permisos")
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permiso");
+
+                    b.Navigation("Rol");
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Rotacion", b =>
                 {
                     b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.Set", null)
@@ -653,9 +987,43 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioRol", b =>
+                {
+                    b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.RolSistema", "Rol")
+                        .WithMany()
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioSistema", "Usuario")
+                        .WithMany("Roles")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioSistema", b =>
+                {
+                    b.HasOne("AnotacionElectronica_Leon_VB.Domain.Entities.Arbitro", "Arbitro")
+                        .WithOne("UsuarioSistema")
+                        .HasForeignKey("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioSistema", "ArbitroId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Arbitro");
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.AlineacionSet", b =>
                 {
                     b.Navigation("Sustituciones");
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Arbitro", b =>
+                {
+                    b.Navigation("UsuarioSistema");
                 });
 
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Equipo", b =>
@@ -668,11 +1036,21 @@ namespace AnotacionElectronica_Leon_VB.Infraestructure.Migrations
                     b.Navigation("Sets");
                 });
 
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.RolSistema", b =>
+                {
+                    b.Navigation("Permisos");
+                });
+
             modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.Set", b =>
                 {
                     b.Navigation("Puntos");
 
                     b.Navigation("Rotaciones");
+                });
+
+            modelBuilder.Entity("AnotacionElectronica_Leon_VB.Domain.Entities.UsuarioSistema", b =>
+                {
+                    b.Navigation("Roles");
                 });
 #pragma warning restore 612, 618
         }

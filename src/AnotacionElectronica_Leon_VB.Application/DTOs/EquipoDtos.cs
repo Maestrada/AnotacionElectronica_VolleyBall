@@ -7,6 +7,7 @@ public record CrearEquipoDto(
     string NombreEntrenador,
     string Categoria,
     string? NombreAsistente = null);
+public record ActualizarEquipoDto(string Nombre, string NombreEntrenador, string Categoria, string? NombreAsistente = null);
 
 public record JugadorDto(
     Guid Id,
@@ -17,7 +18,11 @@ public record JugadorDto(
     string PosicionTexto,
     bool EsCapitan,
     Guid EquipoId,
-    string? NombreEquipo);
+    string? NombreEquipo,
+    string? ImagenUrl,
+    bool EsJugadorForaneo,
+    string? DocumentoIdentidadUrl,
+    string? DocumentoAvalForaneoUrl);
 
 public record CrearJugadorDto(
     string Nombre,
@@ -26,6 +31,10 @@ public record CrearJugadorDto(
     PosicionJugador Posicion,
     Guid EquipoId,
     bool EsCapitan = false);
+
+public record ActualizarJugadorDto(string Nombre, string Apellidos, int NumeroCamiseta,
+    PosicionJugador Posicion, bool EsCapitan = false);
+public record ActualizarDocumentacionJugadorDto(bool EsJugadorForaneo, string? DocumentoIdentidadUrl, string? DocumentoAvalForaneoUrl);
 
 public record EquipoDto(
     Guid Id,

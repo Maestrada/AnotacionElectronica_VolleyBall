@@ -55,5 +55,17 @@ public sealed class CalendarioService : ICalendarioService
 
     private static ConfiguracionReglamentoPartidoDto MapReglamento(Partido partido) => new(partido.CodigoReglamento,
         partido.MaximoSets, partido.SetsParaGanar, partido.PuntosSetRegular, partido.PuntosSetDecisivo,
-        partido.DiferenciaMinima, partido.PuntoCambioCanchaSetDecisivo);
+            partido.DiferenciaMinima, partido.PuntoCambioCanchaSetDecisivo);
+
+    public async Task<JuegoCalendarioDto> ReprogramarAsync(Guid id, ReprogramarJuegoDto dto)
+    {
+        var juego = await _juegos.GetByIdAsync(id) ?? throw new KeyNotFoundException("Juego programado no encontrado.");
+        juego.Reprogramar(dto.FechaHoraProgramada, dto.Recinto); await _unitOfWork.SaveChangesAsync(); return Map(juego);
+    }
+
+    public async Task CancelarAsync(Guid id)
+    {
+        var juego = await _juegos.GetByIdAsync(id) ?? throw new KeyNotFoundException("Juego programado no encontrado.");
+        juego.Cancelar(); await _unitOfWork.SaveChangesAsync();
+    }
 }

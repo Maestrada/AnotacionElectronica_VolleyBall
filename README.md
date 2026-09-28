@@ -1,40 +1,98 @@
-﻿# Anotación electrónica de voleibol
+# Anotación Electrónica de Voleibol — León VB
 
-API para producir un acta electrónica auditable de voleibol. El PDF FIVB indicado por el usuario se usa como referencia visual y funcional; los datos se almacenan como eventos y proyecciones, no como una copia de la planilla.
+Sistema para administrar competiciones de voleibol y generar un acta electrónica auditable. Está pensado como una API ASP.NET Core consumible desde web, Android o aplicaciones de escritorio; el cliente web incluido sirve como mesa de prueba y administración inicial.
+
+La hoja oficial FIVB se utiliza como referencia visual y funcional. Los datos del partido se almacenan como eventos y proyecciones propias, no como campos dentro de un PDF.
+
+## Capacidades actuales
+
+- Partido en vivo: creación directa o desde calendario, inicio de sets, puntos, deshacer, cierre confirmado de set y de partido.
+- Set decisivo: solicitud y confirmación del cambio de cancha al punto configurado (por defecto, 8).
+- Bitácora de eventos: puntos, inicio, confirmaciones y cambios de cancha permanecen auditables.
+- Catálogos: equipos, jugadores, árbitros, competiciones, reglamentos, fases, recintos, designaciones arbitrales y categorías editables.
+- Calendario: programación independiente de juegos y conversión opcional a partido.
+- PDF: exportación del acta final en PDF desde los datos propios del partido.
+- Frontend: dashboard, marcador, catálogos y configuración visible de la URL de API.
 
 ## Arquitectura
 
-`API ASP.NET Core` expone REST y SignalR. `Application` contiene los casos de uso; `Domain` contiene las reglas del partido y `Infrastructure` persiste con EF Core para SQL Server. Cualquier cliente (web con jQuery, Android o Windows) consume la misma API y se puede suscribir a `/hubs/partidos` para el marcador en vivo.
+| Proyecto | Responsabilidad |
+| --- | --- |
+| `Domain` | Entidades y reglas de voleibol. |
+| `Application` | Casos de uso, DTOs e interfaces. |
+| `Infrastructure` | EF Core, SQL Server y migraciones. |
+| `API` | REST, SignalR, PDF y configuración de hospedaje. |
+| `frontend/...web` | React + Vite para probar la API. |
 
-## Flujo implementado
+La API expone SignalR en `/hubs/partidos`. Swagger está disponible en `Development`.
 
-1. Crear partido: `POST /api/partidos`.
-2. Iniciarlo: `POST /api/partidos/{id}/iniciar`; se crea el primer set.
-3. Registrar cada punto: `POST /api/anotacion/puntos/registrar`.
-4. Al llegar a 25 puntos (15 en el quinto), siempre con dos puntos de diferencia, el set queda pendiente de confirmación. `POST /api/anotacion/partidos/{id}/sets/confirmar-cierre` lo cierra y actualiza el partido.
-5. Si hay un error antes de confirmar, `POST /api/anotacion/partidos/{id}/deshacer` revierte el último punto.
-6. Iniciar el siguiente set confirmado: `POST /api/partidos/{id}/sets/{numeroSet}/iniciar`.
-7. Consultar la proyección del acta: `GET /api/partidos/{id}/acta` y su bitácora: `GET /api/anotacion/partidos/{id}/eventos`.
+## Puertos fijos por ambiente
 
-## Bitácora de eventos
+Los puertos se definen en archivos versionados de configuración. El frontend lee su URL de API desde `VITE_API_BASE_URL` y además permite modificarla temporalmente desde la interfaz; esa preferencia se guarda en el navegador.
 
-La tabla `EventosPartido` guarda eventos inmutables y secuenciales, con tipo, set, fecha UTC y carga JSON. Actualmente se registran inicio de partido/set, punto, deshacer, set pendiente de confirmación y set confirmado. El marcador y los sets son la proyección de trabajo; la bitácora permite auditoría y será la fuente para reconstruir el acta y agregar tiempos, cambios, tarjetas, incidencias y protestas.
+| Ambiente | API HTTP | API HTTPS | Frontend | Configuración API | Configuración web |
+| --- | ---: | ---: | ---: | --- | --- |
+| Desarrollo | 60153 | 60152 | 5173 | `appsettings.Development.json` | `.env.development` |
+| QA | 60253 | — | 5174 | `appsettings.QA.json` | `.env.qa` |
+| Producción | 60353 | — | 5175 | `appsettings.Production.json` | `.env.production` |
 
-## Reglamentos y sets decisivos
+En QA y Producción se recomienda un proxy inverso que termine HTTPS. El puerto indicado para API continúa siendo el puerto interno fijo de la aplicación.
 
-Cada partido contiene una **instantánea** del reglamento: código y versión, máximo de sets, sets necesarios para ganar, puntos de sets regulares y decisivo, diferencia mínima y punto de cambio de cancha. La configuración por defecto es `FIVB-2025-2028` (mejor de cinco), pero `POST /api/partidos` acepta `reglamento` para crear, por ejemplo, fase regular de León: máximo 3 / ganar 2. Los cambios posteriores de reglas no modifican esa instantánea, por lo que el acta y su reproducción histórica permanecen correctas.
+## Registro físico de aplicación
 
-En el set decisivo (set 3 de mejor de 3 o set 5 de mejor de 5), al alcanzar uno de los equipos el punto 8, la API deja el set en `pendienteCambioCancha`. No permite un punto posterior hasta llamar `POST /api/anotacion/partidos/{id}/sets/confirmar-cambio-cancha`. La rotación y el marcador no se alteran; se registra el evento de aviso y confirmación.
+La API genera archivos diarios en `src/AnotacionElectronica_Leon_VB.API/logs/` con el formato `aplicacion-AAAA-MM-DD.log`. Incluyen solicitudes HTTP, acciones técnicas y excepciones no controladas; no se almacenan cuerpos de petición ni contraseñas.
 
-La siguiente capa de catálogo debe asociar la instantánea a `Competición → Edición → Fase`, y registrar recintos, oficiales, plantillas y designaciones. Un partido siempre conservará además los identificadores y nombres usados en su acta, para que la reproducción no dependa de datos maestros modificados.
+Todos los servicios de aplicación (`Partido`, `Calendario`, `Equipo`, `Árbitro`, `Competición` y `Reglamento`) pasan por un interceptor centralizado: se registra el inicio, la finalización con duración y cualquier excepción de cada método público. No se registran argumentos ni datos sensibles.
 
-## Calendario de juegos
+La sección `FileLogging` de `appsettings.json` permite configurar la carpeta, el nivel mínimo y los días de retención. Por defecto se conserva información y errores durante 30 días. Los archivos `.log` se excluyen de Git; la carpeta se mantiene en el proyecto mediante `.gitkeep`.
 
-El calendario es una pre-carga independiente. `POST /api/calendario/juegos` programa un juego con código, equipos, fecha/hora, recinto, competición, edición, fase y perfil reglamentario. `GET /api/calendario?desde=...&hasta=...` lo consulta y `POST /api/calendario/juegos/{id}/crear-partido` crea el partido desde esa programación, conservando su reglamento y marcando el juego como convertido.
+## Ejecutar en Desarrollo
 
-`POST /api/partidos` sigue disponible para partidos extraordinarios o no planificados; no requiere un juego de calendario.
+Requisitos: .NET SDK 9 instalado en el entorno actual, SQL Server y Node.js. El objetivo de despliegue puede migrarse a .NET 8 LTS cuando esté disponible el SDK correspondiente.
 
-Ejemplo de punto:
+```powershell
+dotnet restore
+dotnet ef database update --project src/AnotacionElectronica_Leon_VB.Infraestructure --startup-project src/AnotacionElectronica_Leon_VB.API
+dotnet run --project src/AnotacionElectronica_Leon_VB.API --environment Development
+```
+
+En otra terminal:
+
+```powershell
+cd frontend/anotacion-electronica-leon-volleyball-web
+npm install
+npm run dev
+```
+
+Abre `http://127.0.0.1:5173`. La interfaz usará `http://localhost:60153/api` automáticamente.
+
+## Ejecutar QA o Producción local
+
+```powershell
+# API QA / frontend QA
+dotnet run --project src/AnotacionElectronica_Leon_VB.API --environment QA
+cd frontend/anotacion-electronica-leon-volleyball-web
+npm run dev:qa
+
+# API Producción / compilación web de producción
+dotnet run --project src/AnotacionElectronica_Leon_VB.API --environment Production
+npm run build:prd
+```
+
+Para modificar una dirección sin tocar código, actualiza `Hosting:Urls` en `appsettings.{Ambiente}.json` y `VITE_API_BASE_URL` / `VITE_FRONTEND_PORT` en el `.env` correspondiente. Las variables `VITE_*` se incorporan durante la compilación web; se debe reconstruir el frontend después de cambiarlas.
+
+## Flujo básico del partido
+
+1. Crear un partido: `POST /api/partidos`, o crearlo desde `POST /api/calendario/juegos/{id}/crear-partido`.
+2. Iniciar: `POST /api/partidos/{id}/iniciar`.
+3. Registrar un rally: `POST /api/anotacion/puntos/registrar`.
+4. Confirmar el cambio de cancha: `POST /api/anotacion/partidos/{id}/sets/confirmar-cambio-cancha`.
+5. Confirmar el cierre de set: `POST /api/anotacion/partidos/{id}/sets/confirmar-cierre`.
+6. Corregir el último punto antes del cierre: `POST /api/anotacion/partidos/{id}/deshacer`.
+7. Consultar acta y eventos: `GET /api/partidos/{id}/acta` y `GET /api/anotacion/partidos/{id}/eventos`.
+8. Con el partido finalizado, descargar su acta: `GET /api/partidos/{id}/exportaciones/acta.pdf`.
+
+Ejemplo de rally:
 
 ```json
 {
@@ -45,14 +103,36 @@ Ejemplo de punto:
 }
 ```
 
-## Próximos módulos del acta
+## Modelo reglamentario e histórico
 
-- Eventos inmutables y reversibles: tiempo muerto, sustitución, entrada/salida de líbero, sanción, expulsión, incidencia y protesta.
-- Alineación y orden de saque por set, con rotación automática al recuperar el saque.
-- Validaciones reglamentarias configurables y confirmaciones de cierre firmadas por anotador, árbitros y capitanes.
-- Generador de PDF de la hoja final, diseñado desde datos propios y con revisión de licenciamiento/uso de la plantilla FIVB.
-- Autenticación, roles y auditoría antes de uso oficial.
+Cada partido conserva una instantánea del perfil reglamentario: sets máximos, sets para ganar, puntos de set regular/decisivo, diferencia mínima y punto de cambio de cancha. Por ello los cambios futuros de reglamento o de categorías no alteran un partido histórico ni su reproducción.
 
-## Requisito de plataforma
+Las categorías se administran mediante `/api/categorias`. Al desactivarlas se preserva el historial de equipos y competiciones ya registradas.
 
-La solución existente compila actualmente en .NET 9 porque solo ese SDK está instalado en el entorno. El objetivo de despliegue debe ser .NET 8 LTS: al instalar el SDK/targeting pack 8, se cambiarán los `TargetFramework` y las dependencias de EF Core a la serie 8.
+## Usuarios, roles, permisos y bitácora
+
+La migración `AgregarSeguridadYBitacora` crea `UsuariosSistema`, `RolesSistema`, `PermisosSistema`, las relaciones muchos-a-muchos y `BitacoraAcciones`. Las contraseñas se almacenan únicamente como hash mediante `PasswordHasher`; nunca se devuelven por la API.
+
+Roles iniciales: `Administrador`, `Organizador`, `Anotador` y `Consulta`. Los permisos incluyen gestión de seguridad, competiciones, calendario, catálogos, anotación, cierre, exportación de actas y consulta de bitácora.
+
+La administración se expone en `/api/seguridad`:
+
+- `GET`/`POST`/`PUT /usuarios` y `PUT /usuarios/{id}/contrasena`.
+- `GET`/`POST`/`PUT /roles`.
+- `GET`/`POST /permisos`.
+- `GET /bitacora?desde=...&hasta=...&usuarioId=...`.
+
+Toda operación `POST`, `PUT`, `PATCH` o `DELETE` queda registrada automáticamente. Mientras se incorpora autenticación JWT, un cliente autorizado puede enviar `X-Usuario-Id: GUID` y opcionalmente `X-Usuario-Nombre` para atribuir su acción; sin esa información queda registrada como `Sistema`.
+
+Un usuario puede vincularse opcionalmente a un árbitro mediante `PUT /api/seguridad/usuarios/{id}/arbitro` con `{ "arbitroId": "GUID" }` (o `null` para desvincularlo). La relación es uno-a-uno: ni el árbitro ni el usuario son obligatorios para el otro. El rol de arbitraje y los roles de seguridad siguen separados deliberadamente; posteriormente se puede definir qué permisos recibe cada tipo de árbitro sin modificar su historial deportivo.
+
+## Validación
+
+```powershell
+dotnet build AnotacionElectronica_VolleyBall.sln --no-restore
+dotnet test AnotacionElectronica_VolleyBall.sln --no-build --no-restore
+
+cd frontend/anotacion-electronica-leon-volleyball-web
+npm run lint
+npm run build
+```

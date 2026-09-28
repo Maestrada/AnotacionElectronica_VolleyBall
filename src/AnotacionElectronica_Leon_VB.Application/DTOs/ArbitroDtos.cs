@@ -9,6 +9,9 @@ public record CrearArbitroDto(
     string? NumeroLicencia = null,
     string? Federacion = null);
 
+public record ActualizarArbitroDto(string Nombre, string Apellidos, RolArbitro Rol,
+    string? NumeroLicencia = null, string? Federacion = null);
+
 public record ArbitroDto(
     Guid Id,
     string Nombre,

@@ -66,4 +66,19 @@ public class JuegoCalendario
         PartidoId = partidoId;
         Estado = EstadoJuegoCalendario.ConvertidoEnPartido;
     }
+
+    public void Reprogramar(DateTime fechaHora, string recinto)
+    {
+        if (Estado == EstadoJuegoCalendario.ConvertidoEnPartido)
+            throw new InvalidOperationException("No puede reprogramarse un juego ya convertido en partido.");
+        if (string.IsNullOrWhiteSpace(recinto)) throw new ArgumentException("El recinto es obligatorio.");
+        FechaHoraProgramada = fechaHora; Recinto = recinto.Trim(); Estado = EstadoJuegoCalendario.Reprogramado;
+    }
+
+    public void Cancelar()
+    {
+        if (Estado == EstadoJuegoCalendario.ConvertidoEnPartido)
+            throw new InvalidOperationException("No puede cancelarse un juego ya convertido en partido.");
+        Estado = EstadoJuegoCalendario.Cancelado;
+    }
 }

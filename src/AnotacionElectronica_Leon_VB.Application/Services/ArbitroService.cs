@@ -50,6 +50,21 @@ public class ArbitroService : IArbitroService
         return MapToArbitroDto(arbitro);
     }
 
+    public async Task<ArbitroDto> ActualizarArbitroAsync(Guid id, ActualizarArbitroDto dto)
+    {
+        var arbitro = await _arbitros.GetByIdAsync(id) ?? throw new KeyNotFoundException("Árbitro no encontrado.");
+        arbitro.Actualizar(dto.Nombre, dto.Apellidos, dto.Rol, dto.NumeroLicencia, dto.Federacion);
+        await _unitOfWork.SaveChangesAsync();
+        return MapToArbitroDto(arbitro);
+    }
+
+    public async Task EliminarArbitroAsync(Guid id)
+    {
+        var arbitro = await _arbitros.GetByIdAsync(id) ?? throw new KeyNotFoundException("Árbitro no encontrado.");
+        _arbitros.Delete(arbitro);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private static ArbitroDto MapToArbitroDto(Arbitro a)
     {
         return new ArbitroDto(

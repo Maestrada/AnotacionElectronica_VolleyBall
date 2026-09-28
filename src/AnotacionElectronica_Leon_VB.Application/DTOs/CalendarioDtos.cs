@@ -7,3 +7,4 @@ public record CrearJuegoCalendarioDto(string Codigo, Guid EquipoLocalId, Guid Eq
 public record JuegoCalendarioDto(Guid Id, string Codigo, string? Competicion, string? Edicion, string? Fase,
     Guid EquipoLocalId, Guid EquipoVisitanteId, DateTime FechaHoraProgramada, string Recinto, string Estado,
     Guid? PartidoId, ConfiguracionReglamentoPartidoDto Reglamento);
+public record ReprogramarJuegoDto(DateTime FechaHoraProgramada, string Recinto);

@@ -13,30 +13,31 @@ public partial class AgregarEventosYConfirmacionSet : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<bool>(
-            name: "PendienteConfirmacionCierre",
-            table: "Sets",
-            type: "bit",
-            nullable: false,
-            defaultValue: false);
+        // La primera versión se desplegó en algunas instalaciones sin registrar esta migración.
+        // Las comprobaciones permiten adoptar esas bases sin volver a crear columnas o tablas existentes.
+        migrationBuilder.Sql("""
+            IF COL_LENGTH(N'dbo.Sets', N'PendienteConfirmacionCierre') IS NULL
+                ALTER TABLE [Sets] ADD [PendienteConfirmacionCierre] bit NOT NULL CONSTRAINT [DF_Sets_PendienteConfirmacionCierre] DEFAULT CAST(0 AS bit);
 
-        migrationBuilder.CreateTable(
-            name: "EventosPartido",
-            columns: table => new
-            {
-                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                PartidoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                SetId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Secuencia = table.Column<int>(type: "int", nullable: false),
-                Tipo = table.Column<int>(type: "int", nullable: false),
-                DatosJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                OcurrioEnUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
-            },
-            constraints: table => table.PrimaryKey("PK_EventosPartido", x => x.Id));
+            IF OBJECT_ID(N'dbo.EventosPartido', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [EventosPartido] (
+                    [Id] uniqueidentifier NOT NULL,
+                    [PartidoId] uniqueidentifier NOT NULL,
+                    [SetId] uniqueidentifier NULL,
+                    [Secuencia] int NOT NULL,
+                    [Tipo] int NOT NULL,
+                    [DatosJson] nvarchar(max) NOT NULL,
+                    [OcurrioEnUtc] datetime2 NOT NULL,
+                    CONSTRAINT [PK_EventosPartido] PRIMARY KEY ([Id])
+                );
+            END;
 
-        migrationBuilder.CreateIndex(name: "IX_EventosPartido_PartidoId_Secuencia", table: "EventosPartido",
-            columns: new[] { "PartidoId", "Secuencia" }, unique: true);
-        migrationBuilder.CreateIndex(name: "IX_EventosPartido_SetId", table: "EventosPartido", column: "SetId");
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_EventosPartido_PartidoId_Secuencia' AND object_id = OBJECT_ID(N'dbo.EventosPartido'))
+                CREATE UNIQUE INDEX [IX_EventosPartido_PartidoId_Secuencia] ON [EventosPartido] ([PartidoId], [Secuencia]);
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_EventosPartido_SetId' AND object_id = OBJECT_ID(N'dbo.EventosPartido'))
+                CREATE INDEX [IX_EventosPartido_SetId] ON [EventosPartido] ([SetId]);
+            """);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)

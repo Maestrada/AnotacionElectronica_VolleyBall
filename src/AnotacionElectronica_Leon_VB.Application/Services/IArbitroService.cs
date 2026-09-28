@@ -7,4 +7,6 @@ public interface IArbitroService
     Task<IEnumerable<ArbitroDto>> ObtenerArbitrosAsync();
     Task<ArbitroDto?> ObtenerPorIdAsync(Guid id);
     Task<ArbitroDto> CrearArbitroAsync(CrearArbitroDto dto);
+    Task<ArbitroDto> ActualizarArbitroAsync(Guid id, ActualizarArbitroDto dto);
+    Task EliminarArbitroAsync(Guid id);
 }

@@ -10,6 +10,7 @@ public class Arbitro
     public RolArbitro Rol { get; private set; }
     public string? NumeroLicencia { get; private set; }
     public string? Federacion { get; private set; }
+    public UsuarioSistema? UsuarioSistema { get; private set; }
 
     private Arbitro() { }
 
@@ -19,6 +20,17 @@ public class Arbitro
             throw new ArgumentException("El nombre y apellidos del árbitro son obligatorios.");
 
         Id = Guid.NewGuid();
+        Nombre = nombre.Trim();
+        Apellidos = apellidos.Trim();
+        Rol = rol;
+        NumeroLicencia = numeroLicencia?.Trim();
+        Federacion = federacion?.Trim();
+    }
+
+    public void Actualizar(string nombre, string apellidos, RolArbitro rol, string? numeroLicencia, string? federacion)
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellidos))
+            throw new ArgumentException("El nombre y apellidos del árbitro son obligatorios.");
         Nombre = nombre.Trim();
         Apellidos = apellidos.Trim();
         Rol = rol;

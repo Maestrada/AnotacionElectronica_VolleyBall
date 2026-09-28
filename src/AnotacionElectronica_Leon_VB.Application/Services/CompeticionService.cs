@@ -50,6 +50,19 @@ public class CompeticionService : ICompeticionService
         return MapToCompeticionDto(comp);
     }
 
+    public async Task<CompeticionDto> ActualizarCompeticionAsync(Guid id, ActualizarCompeticionDto dto)
+    {
+        var comp = await _competiciones.GetByIdAsync(id) ?? throw new KeyNotFoundException("Competición no encontrada.");
+        comp.Actualizar(dto.Nombre, dto.Edicion, dto.Categoria, dto.Rama, dto.Organizador, dto.SedePrincipal);
+        await _unitOfWork.SaveChangesAsync(); return MapToCompeticionDto(comp);
+    }
+
+    public async Task EliminarCompeticionAsync(Guid id)
+    {
+        var comp = await _competiciones.GetByIdAsync(id) ?? throw new KeyNotFoundException("Competición no encontrada.");
+        _competiciones.Delete(comp); await _unitOfWork.SaveChangesAsync();
+    }
+
     private static CompeticionDto MapToCompeticionDto(Competicion c)
     {
         return new CompeticionDto(

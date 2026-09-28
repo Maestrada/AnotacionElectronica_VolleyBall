@@ -16,3 +16,4 @@ public record CompeticionDto(
     string Rama,
     string? Organizador,
     string? SedePrincipal);
+public record ActualizarCompeticionDto(string Nombre, string Edicion, string Categoria, string Rama, string? Organizador = null, string? SedePrincipal = null);

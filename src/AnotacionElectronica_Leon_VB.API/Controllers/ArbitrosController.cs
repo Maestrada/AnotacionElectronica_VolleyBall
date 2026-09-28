@@ -42,4 +42,19 @@ public class ArbitrosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Actualizar(Guid id, [FromBody] ActualizarArbitroDto dto)
+    {
+        try { return Ok(await _arbitroService.ActualizarArbitroAsync(id, dto)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { mensaje = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { mensaje = ex.Message }); }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Eliminar(Guid id)
+    {
+        try { await _arbitroService.EliminarArbitroAsync(id); return NoContent(); }
+        catch (KeyNotFoundException ex) { return NotFound(new { mensaje = ex.Message }); }
+    }
 }

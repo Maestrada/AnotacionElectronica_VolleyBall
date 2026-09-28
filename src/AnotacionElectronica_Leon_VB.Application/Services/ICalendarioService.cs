@@ -7,4 +7,6 @@ public interface ICalendarioService
     Task<JuegoCalendarioDto> CrearAsync(CrearJuegoCalendarioDto dto);
     Task<IReadOnlyList<JuegoCalendarioDto>> ObtenerAsync(DateTime? desde, DateTime? hasta);
     Task<PartidoResponseDto> CrearPartidoDesdeCalendarioAsync(Guid juegoCalendarioId);
+    Task<JuegoCalendarioDto> ReprogramarAsync(Guid id, ReprogramarJuegoDto dto);
+    Task CancelarAsync(Guid id);
 }

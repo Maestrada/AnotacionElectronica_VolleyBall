@@ -52,4 +52,19 @@ public class PerfilReglamento
 
     public ConfiguracionReglamentoPartido ToValueObject() =>
         new(CodigoReglamento, MaximoSets, SetsParaGanar, PuntosSetRegular, PuntosSetDecisivo, DiferenciaMinima, PuntoCambioCanchaSetDecisivo);
+
+    public void Actualizar(string nombre, string? descripcion, int maximoSets, int setsParaGanar, int puntosSetRegular,
+        int puntosSetDecisivo, int diferenciaMinima, int puntoCambioCanchaSetDecisivo)
+    {
+        new ConfiguracionReglamentoPartido(CodigoReglamento, maximoSets, setsParaGanar, puntosSetRegular,
+            puntosSetDecisivo, diferenciaMinima, puntoCambioCanchaSetDecisivo).Validar();
+        Nombre = string.IsNullOrWhiteSpace(nombre) ? CodigoReglamento : nombre.Trim();
+        Descripcion = descripcion?.Trim();
+        MaximoSets = maximoSets;
+        SetsParaGanar = setsParaGanar;
+        PuntosSetRegular = puntosSetRegular;
+        PuntosSetDecisivo = puntosSetDecisivo;
+        DiferenciaMinima = diferenciaMinima;
+        PuntoCambioCanchaSetDecisivo = puntoCambioCanchaSetDecisivo;
+    }
 }

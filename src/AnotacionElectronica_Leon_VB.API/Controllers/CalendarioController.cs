@@ -42,4 +42,12 @@ public sealed class CalendarioController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
+    [HttpPut("juegos/{id:guid}/reprogramar")]
+    public async Task<IActionResult> Reprogramar(Guid id, ReprogramarJuegoDto dto)
+    { try { return Ok(await _calendario.ReprogramarAsync(id, dto)); } catch (Exception e) when (e is KeyNotFoundException or ArgumentException or InvalidOperationException) { return BadRequest(new { mensaje = e.Message }); } }
+
+    [HttpPost("juegos/{id:guid}/cancelar")]
+    public async Task<IActionResult> Cancelar(Guid id)
+    { try { await _calendario.CancelarAsync(id); return NoContent(); } catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException) { return BadRequest(new { mensaje = e.Message }); } }
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
 
-const defaultApiUrl = 'http://localhost:60153/api'
+const defaultApiUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:60153/api'
 
 // --- Tipos de Datos ---
 export type PerfilReglamento = {
@@ -28,6 +28,10 @@ export type Jugador = {
   esCapitan: boolean
   equipoId: string
   nombreEquipo?: string
+  imagenUrl?: string
+  esJugadorForaneo: boolean
+  documentoIdentidadUrl?: string
+  documentoAvalForaneoUrl?: string
 }
 
 export type Equipo = {
@@ -59,6 +63,13 @@ export type Competicion = {
   rama: string
   organizador?: string
   sedePrincipal?: string
+}
+
+export type Categoria = {
+  id: string
+  nombre: string
+  descripcion?: string
+  activa: boolean
 }
 
 export type JuegoCalendario = {
@@ -102,11 +113,13 @@ export type SetActual = {
   equipoGanadorId?: string
 }
 
-type TabType = 'partidos' | 'calendario' | 'equipos' | 'jugadores' | 'arbitros' | 'reglamentos' | 'competiciones'
+type TabType = 'dashboard' | 'partidos' | 'calendario' | 'equipos' | 'jugadores' | 'arbitros' | 'reglamentos' | 'competiciones' | 'categorias'
 
 async function request<T>(apiUrl: string, path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers)
+  if (!(options?.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   const response = await fetch(`${apiUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers,
     ...options
   })
   if (!response.ok) {
@@ -118,7 +131,7 @@ async function request<T>(apiUrl: string, path: string, options?: RequestInit): 
 
 export default function App() {
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('apiUrl') ?? defaultApiUrl)
-  const [tabActiva, setTabActiva] = useState<TabType>('partidos')
+  const [tabActiva, setTabActiva] = useState<TabType>('dashboard')
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'info' | 'exito' | 'error' }>({
     texto: 'Sistema de anotación listo. Conecta la API o administra los catálogos.',
     tipo: 'info'
@@ -131,6 +144,7 @@ export default function App() {
   const [competiciones, setCompeticiones] = useState<Competicion[]>([])
   const [reglamentos, setReglamentos] = useState<PerfilReglamento[]>([])
   const [juegosCalendario, setJuegosCalendario] = useState<JuegoCalendario[]>([])
+  const [categorias, setCategorias] = useState<Categoria[]>([])
 
   // Estado del Partido y Marcador
   const [partidoActual, setPartidoActual] = useState<Partido | null>(null)
@@ -150,6 +164,8 @@ export default function App() {
   const [formEquipoEntrenador, setFormEquipoEntrenador] = useState('')
   const [formEquipoAsistente, setFormEquipoAsistente] = useState('')
   const [formEquipoCategoria, setFormEquipoCategoria] = useState('Mayor')
+  const [formCategoriaNombre, setFormCategoriaNombre] = useState('')
+  const [formCategoriaDescripcion, setFormCategoriaDescripcion] = useState('')
 
   // 3. Jugador
   const [formJugadorEquipoId, setFormJugadorEquipoId] = useState('')
@@ -159,6 +175,15 @@ export default function App() {
   const [formJugadorPosicion, setFormJugadorPosicion] = useState<number>(2) // 2: Rematador/Punta
   const [formJugadorCapitan, setFormJugadorCapitan] = useState(false)
   const [filtroEquipoJugadores, setFiltroEquipoJugadores] = useState('')
+  const [jugadorFicha, setJugadorFicha] = useState<Jugador | null>(null)
+  const [fichaNombre, setFichaNombre] = useState('')
+  const [fichaApellidos, setFichaApellidos] = useState('')
+  const [fichaCamiseta, setFichaCamiseta] = useState<number>(1)
+  const [fichaPosicion, setFichaPosicion] = useState(2)
+  const [fichaCapitan, setFichaCapitan] = useState(false)
+  const [fichaForaneo, setFichaForaneo] = useState(false)
+  const [fichaIdentidadUrl, setFichaIdentidadUrl] = useState('')
+  const [fichaAvalUrl, setFichaAvalUrl] = useState('')
 
   // 4. Árbitro
   const [formArbitroNombre, setFormArbitroNombre] = useState('')
@@ -199,13 +224,14 @@ export default function App() {
   // Carga general de datos
   const cargarTodosLosDatos = async () => {
     try {
-      const [eqs, jugs, arbs, comps, regs, cals] = await Promise.all([
+      const [eqs, jugs, arbs, comps, regs, cals, cats] = await Promise.all([
         request<Equipo[]>(apiUrl, '/equipos').catch(() => []),
         request<Jugador[]>(apiUrl, '/jugadores').catch(() => []),
         request<Arbitro[]>(apiUrl, '/arbitros').catch(() => []),
         request<Competicion[]>(apiUrl, '/competiciones').catch(() => []),
         request<PerfilReglamento[]>(apiUrl, '/reglamentos').catch(() => []),
-        request<JuegoCalendario[]>(apiUrl, '/calendario').catch(() => [])
+        request<JuegoCalendario[]>(apiUrl, '/calendario').catch(() => []),
+        request<Categoria[]>(apiUrl, '/categorias').catch(() => [])
       ])
 
       setEquipos(eqs)
@@ -214,6 +240,7 @@ export default function App() {
       setCompeticiones(comps)
       setReglamentos(regs)
       setJuegosCalendario(cals)
+      setCategorias(cats)
 
       if (eqs.length > 0 && !formJugadorEquipoId) setFormJugadorEquipoId(eqs[0].id)
       if (eqs.length > 0 && !partidoLocalId) setPartidoLocalId(eqs[0].id)
@@ -246,6 +273,52 @@ export default function App() {
   }
 
   // --- Handlers de Creación ---
+
+  const handleSubmitCategoria = async (e: FormEvent) => {
+    e.preventDefault()
+    try {
+      const nueva = await request<Categoria>(apiUrl, '/categorias', {
+        method: 'POST',
+        body: JSON.stringify({ nombre: formCategoriaNombre, descripcion: formCategoriaDescripcion || null })
+      })
+      setMensaje({ texto: `Categoría '${nueva.nombre}' registrada.`, tipo: 'exito' })
+      setFormCategoriaNombre('')
+      setFormCategoriaDescripcion('')
+      void cargarTodosLosDatos()
+    } catch (err) {
+      setMensaje({ texto: (err as Error).message, tipo: 'error' })
+    }
+  }
+
+  const cambiarEstadoCategoria = async (categoria: Categoria) => {
+    try {
+      await request<Categoria>(apiUrl, `/categorias/${categoria.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ nombre: categoria.nombre, descripcion: categoria.descripcion || null, activa: !categoria.activa })
+      })
+      setMensaje({ texto: `Categoría ${categoria.activa ? 'desactivada' : 'activada'} correctamente.`, tipo: 'exito' })
+      void cargarTodosLosDatos()
+    } catch (err) {
+      setMensaje({ texto: (err as Error).message, tipo: 'error' })
+    }
+  }
+
+  const editarCategoria = async (categoria: Categoria) => {
+    const nombre = window.prompt('Nombre de la categoría:', categoria.nombre)
+    if (nombre === null) return
+    const descripcion = window.prompt('Descripción (opcional):', categoria.descripcion || '')
+    if (descripcion === null) return
+    try {
+      await request<Categoria>(apiUrl, `/categorias/${categoria.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ nombre, descripcion: descripcion || null, activa: categoria.activa })
+      })
+      setMensaje({ texto: 'Categoría actualizada correctamente.', tipo: 'exito' })
+      void cargarTodosLosDatos()
+    } catch (err) {
+      setMensaje({ texto: (err as Error).message, tipo: 'error' })
+    }
+  }
 
   // 1. Guardar Equipo
   const handleSubmitEquipo = async (e: FormEvent) => {
@@ -298,6 +371,36 @@ export default function App() {
     } catch (err) {
       setMensaje({ texto: (err as Error).message, tipo: 'error' })
     }
+  }
+
+  const abrirFichaJugador = (jugador: Jugador) => {
+    setJugadorFicha(jugador)
+    setFichaNombre(jugador.nombre); setFichaApellidos(jugador.apellidos); setFichaCamiseta(jugador.numeroCamiseta)
+    setFichaPosicion(jugador.posicion); setFichaCapitan(jugador.esCapitan); setFichaForaneo(jugador.esJugadorForaneo)
+    setFichaIdentidadUrl(jugador.documentoIdentidadUrl ?? ''); setFichaAvalUrl(jugador.documentoAvalForaneoUrl ?? '')
+  }
+
+  const guardarFichaJugador = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!jugadorFicha) return
+    try {
+      await request<Jugador>(apiUrl, `/jugadores/${jugadorFicha.id}`, { method: 'PUT', body: JSON.stringify({ nombre: fichaNombre, apellidos: fichaApellidos, numeroCamiseta: fichaCamiseta, posicion: fichaPosicion, esCapitan: fichaCapitan }) })
+      const actualizado = await request<Jugador>(apiUrl, `/jugadores/${jugadorFicha.id}/documentacion`, { method: 'PUT', body: JSON.stringify({ esJugadorForaneo: fichaForaneo, documentoIdentidadUrl: fichaIdentidadUrl || null, documentoAvalForaneoUrl: fichaAvalUrl || null }) })
+      setJugadorFicha(actualizado); abrirFichaJugador(actualizado)
+      setMensaje({ texto: 'Ficha del jugador actualizada.', tipo: 'exito' })
+      void cargarTodosLosDatos()
+    } catch (err) { setMensaje({ texto: (err as Error).message, tipo: 'error' }) }
+  }
+
+  const subirArchivoJugador = async (archivo: File | undefined, tipo: 'foto' | 'documento-identidad' | 'aval-foraneo') => {
+    if (!jugadorFicha || !archivo) return
+    try {
+      const data = new FormData(); data.append('archivo', archivo)
+      const actualizado = await request<Jugador>(apiUrl, `/jugadores/${jugadorFicha.id}/${tipo}`, { method: 'POST', body: data })
+      setJugadorFicha(actualizado); abrirFichaJugador(actualizado)
+      setMensaje({ texto: 'Archivo actualizado correctamente.', tipo: 'exito' })
+      void cargarTodosLosDatos()
+    } catch (err) { setMensaje({ texto: (err as Error).message, tipo: 'error' }) }
   }
 
   // 3. Guardar Árbitro
@@ -600,6 +703,12 @@ export default function App() {
       {/* Navegación por Pestañas */}
       <nav className="tabs-nav" aria-label="Secciones del sistema">
         <button
+          className={`tab-btn ${tabActiva === 'dashboard' ? 'active' : ''}`}
+          onClick={() => setTabActiva('dashboard')}
+        >
+          Dashboard
+        </button>
+        <button
           className={`tab-btn ${tabActiva === 'partidos' ? 'active' : ''}`}
           onClick={() => setTabActiva('partidos')}
         >
@@ -616,6 +725,12 @@ export default function App() {
           onClick={() => setTabActiva('equipos')}
         >
           🛡️ Equipos ({equipos.length})
+        </button>
+        <button
+          className={`tab-btn ${tabActiva === 'categorias' ? 'active' : ''}`}
+          onClick={() => setTabActiva('categorias')}
+        >
+          Categorías ({categorias.length})
         </button>
         <button
           className={`tab-btn ${tabActiva === 'jugadores' ? 'active' : ''}`}
@@ -646,6 +761,77 @@ export default function App() {
       {/* CONTENIDO DE PESTAÑAS */}
 
       {/* 1. TAB: PARTIDOS & MARCADOR */}
+      {tabActiva === 'dashboard' && (
+        <section className="tab-content dashboard">
+          <section className="dashboard-hero panel">
+            <div>
+              <span className="eyebrow">CENTRO DE CONTROL</span>
+              <h2>Organiza la jornada y lleva cada partido con seguridad.</h2>
+              <p>Accede rápidamente a la mesa de anotación, el calendario y los catálogos que alimentan el acta oficial.</p>
+            </div>
+            <button className="btn-primary" onClick={() => setTabActiva('partidos')}>Abrir mesa de anotación</button>
+          </section>
+
+          <section className="dashboard-stats" aria-label="Resumen de datos">
+            <article className="dashboard-stat"><span>Equipos</span><strong>{equipos.length}</strong><small>registrados</small></article>
+            <article className="dashboard-stat"><span>Jugadores</span><strong>{jugadores.length}</strong><small>habilitados</small></article>
+            <article className="dashboard-stat"><span>Próximos juegos</span><strong>{juegosCalendario.filter(j => j.estado !== 'Cancelado' && !j.partidoId).length}</strong><small>en calendario</small></article>
+            <article className="dashboard-stat"><span>Reglamentos</span><strong>{reglamentos.length}</strong><small>perfiles activos</small></article>
+          </section>
+
+          <section className="dashboard-grid">
+            <article className="panel dashboard-card">
+              <div className="section-heading"><div><span className="eyebrow">PRÓXIMAMENTE</span><h3>Juegos programados</h3></div><button className="link-button" onClick={() => setTabActiva('calendario')}>Ver calendario</button></div>
+              {juegosCalendario.filter(j => j.estado !== 'Cancelado').slice(0, 4).map(juego => (
+                <div className="dashboard-game" key={juego.id}>
+                  <div><strong>{juego.codigo}</strong><span>{new Date(juego.fechaHoraProgramada).toLocaleString()}</span></div>
+                  <span className="status-chip">{juego.fase ?? 'Pendiente'}</span>
+                </div>
+              ))}
+              {!juegosCalendario.length && <p className="empty-state">Aún no hay juegos programados. Puedes crear partidos directos cuando lo necesites.</p>}
+            </article>
+            <article className="panel dashboard-card">
+              <span className="eyebrow">ACCESOS RÁPIDOS</span><h3>Preparar la competencia</h3>
+              <div className="dashboard-actions">
+                <button className="quick-action" onClick={() => setTabActiva('equipos')}>Equipos</button>
+                <button className="quick-action" onClick={() => setTabActiva('jugadores')}>Jugadores</button>
+                <button className="quick-action" onClick={() => setTabActiva('arbitros')}>Árbitros</button>
+                <button className="quick-action" onClick={() => setTabActiva('reglamentos')}>Reglamentos</button>
+                <button className="quick-action" onClick={() => setTabActiva('competiciones')}>Competiciones</button>
+              </div>
+              <p className="dashboard-note">El resultado y los incidentes se registran como eventos: el acta puede reconstruirse y revisarse antes del cierre.</p>
+            </article>
+          </section>
+        </section>
+      )}
+
+      {tabActiva === 'categorias' && (
+        <section className="tab-content grid-2-cols">
+          <form className="panel form" onSubmit={handleSubmitCategoria}>
+            <h2>Catálogo de categorías</h2>
+            <p className="form-subtitle">Define las categorías de equipos y competiciones. Las inactivas se conservan para el historial.</p>
+            <label>Nombre de categoría *<input required value={formCategoriaNombre} onChange={e => setFormCategoriaNombre(e.target.value)} placeholder="Ej. U19 Femenil" /></label>
+            <label>Descripción<input value={formCategoriaDescripcion} onChange={e => setFormCategoriaDescripcion(e.target.value)} placeholder="Edad, rama o condiciones" /></label>
+            <button className="btn-primary" type="submit">Agregar categoría</button>
+          </form>
+          <section className="panel">
+            <h2>Categorías registradas</h2>
+            <div className="data-list">
+              {categorias.map(categoria => (
+                <article className="list-item" key={categoria.id}>
+                  <div><strong>{categoria.nombre}</strong><span>{categoria.descripcion || 'Sin descripción'} · {categoria.activa ? 'Activa' : 'Inactiva'}</span></div>
+                  <div className="inline-actions">
+                    <button className="btn-secondary" onClick={() => void editarCategoria(categoria)}>Editar</button>
+                    <button className="btn-secondary" onClick={() => void cambiarEstadoCategoria(categoria)}>{categoria.activa ? 'Desactivar' : 'Activar'}</button>
+                  </div>
+                </article>
+              ))}
+              {!categorias.length && <p className="empty-state">No hay categorías aún. Registra la primera para usarla en los formularios.</p>}
+            </div>
+          </section>
+        </section>
+      )}
+
       {tabActiva === 'partidos' && (
         <section className="tab-content">
           {!partidoActual ? (
@@ -1113,11 +1299,10 @@ export default function App() {
             <label>
               Categoría *
               <select value={formEquipoCategoria} onChange={e => setFormEquipoCategoria(e.target.value)}>
-                <option value="Mayor">Mayor / Libre</option>
-                <option value="U19">Juvenil Mayor (U19)</option>
-                <option value="U17">Juvenil Menor (U17)</option>
-                <option value="U15">Infantil Mayor (U15)</option>
-                <option value="Master">Master (+35)</option>
+                {!categorias.some(c => c.activa) && <option value="Mayor">Mayor / Libre</option>}
+                {categorias.filter(c => c.activa).map(categoria => (
+                  <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>
+                ))}
               </select>
             </label>
 
@@ -1272,6 +1457,7 @@ export default function App() {
                       <th>Equipo</th>
                       <th>Posición</th>
                       <th>Rol</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1284,6 +1470,7 @@ export default function App() {
                           <td>{j.nombreEquipo ?? equipos.find(e => e.id === j.equipoId)?.nombre}</td>
                           <td><span className={`badge ${j.posicion === 5 ? 'badge-warning' : 'badge-info'}`}>{j.posicionTexto}</span></td>
                           <td>{j.esCapitan ? <span className="captain-badge">👑 Capitán</span> : 'Jugador'}</td>
+                          <td><button className="btn-sm btn-secondary" onClick={() => abrirFichaJugador(j)}>Ficha / Editar</button></td>
                         </tr>
                       ))}
                   </tbody>
@@ -1291,6 +1478,25 @@ export default function App() {
               </div>
             )}
           </div>
+        </section>
+      )}
+
+      {jugadorFicha && tabActiva === 'jugadores' && (
+        <section className="tab-content">
+          <form className="panel form player-profile" onSubmit={guardarFichaJugador}>
+            <div className="player-profile-head">
+              {jugadorFicha.imagenUrl ? <img src={jugadorFicha.imagenUrl} alt={`Foto de ${jugadorFicha.nombre}`} className="player-photo" /> : <div className="player-photo placeholder">{jugadorFicha.nombre.slice(0, 1)}{jugadorFicha.apellidos.slice(0, 1)}</div>}
+              <div><span className="eyebrow">FICHA DE JUGADOR</span><h3>{jugadorFicha.nombre} {jugadorFicha.apellidos}</h3><p>{jugadorFicha.nombreEquipo ?? equipos.find(e => e.id === jugadorFicha.equipoId)?.nombre}</p></div>
+              <button type="button" className="link-button" onClick={() => setJugadorFicha(null)}>Cerrar</button>
+            </div>
+            <div className="form-row"><label>Nombre<input required value={fichaNombre} onChange={e => setFichaNombre(e.target.value)} /></label><label>Apellidos<input required value={fichaApellidos} onChange={e => setFichaApellidos(e.target.value)} /></label></div>
+            <div className="form-row"><label>Dorsal<input type="number" min="1" max="99" required value={fichaCamiseta} onChange={e => setFichaCamiseta(Number(e.target.value))} /></label><label>Posición<select value={fichaPosicion} onChange={e => setFichaPosicion(Number(e.target.value))}><option value={1}>Colocador</option><option value={2}>Rematador</option><option value={3}>Central</option><option value={4}>Opuesto</option><option value={5}>Líbero</option></select></label></div>
+            <div className="form-row"><label className="checkbox-label"><input type="checkbox" checked={fichaCapitan} onChange={e => setFichaCapitan(e.target.checked)} /> Capitán</label><label className="checkbox-label"><input type="checkbox" checked={fichaForaneo} onChange={e => setFichaForaneo(e.target.checked)} /> Jugador foráneo</label></div>
+            <div className="document-grid"><label>Foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => void subirArchivoJugador(e.target.files?.[0], 'foto')} /></label><label>Documento de identidad<input type="file" accept=".pdf,image/png,image/jpeg" onChange={e => void subirArchivoJugador(e.target.files?.[0], 'documento-identidad')} /></label><label>Aval de jugador foráneo<input type="file" accept=".pdf,image/png,image/jpeg" onChange={e => void subirArchivoJugador(e.target.files?.[0], 'aval-foraneo')} /></label></div>
+            <div className="document-links">{jugadorFicha.documentoIdentidadUrl && <a href={jugadorFicha.documentoIdentidadUrl} target="_blank" rel="noreferrer">Ver identidad</a>}{jugadorFicha.documentoAvalForaneoUrl && <a href={jugadorFicha.documentoAvalForaneoUrl} target="_blank" rel="noreferrer">Ver aval</a>}</div>
+            <div className="form-row"><label>URL identidad (opcional)<input value={fichaIdentidadUrl} onChange={e => setFichaIdentidadUrl(e.target.value)} /></label><label>URL aval (opcional)<input value={fichaAvalUrl} onChange={e => setFichaAvalUrl(e.target.value)} /></label></div>
+            <button className="primary" type="submit">Guardar ficha</button>
+          </form>
         </section>
       )}
 
@@ -1568,11 +1774,10 @@ export default function App() {
               <label>
                 Categoría *
                 <select value={formCompCategoria} onChange={e => setFormCompCategoria(e.target.value)}>
-                  <option value="Mayor">Mayor / Libre</option>
-                  <option value="U19">Juvenil Mayor (U19)</option>
-                  <option value="U17">Juvenil Menor (U17)</option>
-                  <option value="U15">Infantil Mayor (U15)</option>
-                  <option value="Master">Master</option>
+                  {!categorias.some(c => c.activa) && <option value="Mayor">Mayor / Libre</option>}
+                  {categorias.filter(c => c.activa).map(categoria => (
+                    <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>
+                  ))}
                 </select>
               </label>
 

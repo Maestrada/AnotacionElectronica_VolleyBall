@@ -2,9 +2,20 @@ using AnotacionElectronica_Leon_VB.Infraestructure;
 using AnotacionElectronica_Leon_VB.Infraestructure.Context;
 using AnotacionElectronica_Leon_VB.Application.Services;
 using AnotacionElectronica_Leon_VB.API.Hubs;
+using AnotacionElectronica_Leon_VB.API.Middleware;
+using AnotacionElectronica_Leon_VB.API.Logging;
+using AnotacionElectronica_Leon_VB.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddPhysicalFileLogging(builder.Environment.ContentRootPath, builder.Configuration.GetSection("FileLogging"));
+var configuredUrls = builder.Configuration["Hosting:Urls"];
+if (!string.IsNullOrWhiteSpace(configuredUrls))
+{
+    builder.WebHost.UseUrls(configuredUrls);
+}
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 // Agregar SignalR y CORS
 builder.Services.AddSignalR();
@@ -29,12 +40,19 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Servicios de Aplicación
-builder.Services.AddScoped<IPartidoService, PartidoService>();
-builder.Services.AddScoped<ICalendarioService, CalendarioService>();
-builder.Services.AddScoped<IEquipoService, EquipoService>();
-builder.Services.AddScoped<IArbitroService, ArbitroService>();
-builder.Services.AddScoped<ICompeticionService, CompeticionService>();
-builder.Services.AddScoped<IReglamentoService, ReglamentoService>();
+builder.Services.AddScoped<PartidoService>();
+builder.Services.AddScoped<CalendarioService>();
+builder.Services.AddScoped<EquipoService>();
+builder.Services.AddScoped<ArbitroService>();
+builder.Services.AddScoped<CompeticionService>();
+builder.Services.AddScoped<ReglamentoService>();
+builder.Services.AddScoped<IPartidoService>(sp => ServiceLoggingProxy<IPartidoService>.Create(sp.GetRequiredService<PartidoService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<ICalendarioService>(sp => ServiceLoggingProxy<ICalendarioService>.Create(sp.GetRequiredService<CalendarioService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<IEquipoService>(sp => ServiceLoggingProxy<IEquipoService>.Create(sp.GetRequiredService<EquipoService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<IArbitroService>(sp => ServiceLoggingProxy<IArbitroService>.Create(sp.GetRequiredService<ArbitroService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<ICompeticionService>(sp => ServiceLoggingProxy<ICompeticionService>.Create(sp.GetRequiredService<CompeticionService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<IReglamentoService>(sp => ServiceLoggingProxy<IReglamentoService>.Create(sp.GetRequiredService<ReglamentoService>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddScoped<IPasswordHasher<UsuarioSistema>, PasswordHasher<UsuarioSistema>>();
 
 var app = builder.Build();
 
@@ -61,8 +79,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("CorsPolicy");
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+app.UseMiddleware<RegistroSolicitudMiddleware>();
+app.UseMiddleware<BitacoraAccionesMiddleware>();
 app.MapControllers();
 
 // Mapear ruta del Hub

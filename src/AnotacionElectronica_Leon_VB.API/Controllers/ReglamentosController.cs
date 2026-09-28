@@ -42,4 +42,19 @@ public class ReglamentosController : ControllerBase
             return BadRequest(new { mensaje = ex.Message });
         }
     }
+
+    [HttpPut("{codigo}")]
+    public async Task<IActionResult> Actualizar(string codigo, [FromBody] ActualizarPerfilReglamentoDto dto)
+    {
+        try { return Ok(await _reglamentoService.ActualizarReglamentoAsync(codigo, dto)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { mensaje = ex.Message }); }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { return BadRequest(new { mensaje = ex.Message }); }
+    }
+
+    [HttpDelete("{codigo}")]
+    public async Task<IActionResult> Eliminar(string codigo)
+    {
+        try { await _reglamentoService.EliminarReglamentoAsync(codigo); return NoContent(); }
+        catch (KeyNotFoundException ex) { return NotFound(new { mensaje = ex.Message }); }
+    }
 }

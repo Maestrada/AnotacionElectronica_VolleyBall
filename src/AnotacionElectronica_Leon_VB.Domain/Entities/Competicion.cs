@@ -9,6 +9,7 @@ public class Competicion
     public string Rama { get; private set; } = string.Empty; // Ej: Femenil, Varonil, Mixto
     public string? Organizador { get; private set; }
     public string? SedePrincipal { get; private set; }
+    public string? ImagenUrl { get; private set; }
 
     private Competicion() { }
 
@@ -25,4 +26,15 @@ public class Competicion
         Organizador = organizador?.Trim();
         SedePrincipal = sedePrincipal?.Trim();
     }
+
+    public void Actualizar(string nombre, string edicion, string categoria, string rama, string? organizador, string? sedePrincipal)
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(edicion))
+            throw new ArgumentException("El nombre y edición de la competición son obligatorios.");
+        Nombre = nombre.Trim(); Edicion = edicion.Trim();
+        Categoria = string.IsNullOrWhiteSpace(categoria) ? "Mayor" : categoria.Trim();
+        Rama = string.IsNullOrWhiteSpace(rama) ? "Mixto" : rama.Trim();
+        Organizador = organizador?.Trim(); SedePrincipal = sedePrincipal?.Trim();
+    }
+    public void EstablecerImagen(string? imagenUrl) => ImagenUrl = imagenUrl?.Trim();
 }
